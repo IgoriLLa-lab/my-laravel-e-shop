@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Enum\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Order extends Model
 {
+    protected $casts = [
+        'status' => OrderStatus::class,
+    ];
     /**
      * @return BelongsToMany
      */
@@ -29,10 +33,10 @@ class Order extends Model
 
     public function saveOrder(string $name, string $phone): bool
     {
-        if ($this->status == 0) {
+        if ($this->status == OrderStatus::NEW) {
             $this->name = $name;
             $this->phone = $phone;
-            $this->status = 1;
+            $this->status = OrderStatus::PROCESSED;
             $this->save();
             session()->forget('orderId');
 
