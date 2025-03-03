@@ -8,7 +8,9 @@ use App\Models\Subscription;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 
 class MainController extends Controller
 {
@@ -79,7 +81,19 @@ class MainController extends Controller
 
 
         return redirect()->back()->with('success', 'Мы свяжемся с вами как только товар появиться в наличии');
-
     }
+
+    /**
+     * @param string $locale
+     * @return RedirectResponse
+     */
+    public function changeLocale(string $locale): RedirectResponse
+    {
+        session(['locale' => $locale]);
+        App::setLocale($locale);
+
+        return redirect()->back();
+    }
+
 
 }

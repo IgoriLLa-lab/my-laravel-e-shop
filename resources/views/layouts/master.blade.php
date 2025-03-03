@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Интернет Магазин</title>
+    <title>{{ __('main.title_online_shop') }}</title>
     <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/starter-template.css') }}" rel="stylesheet">
@@ -13,7 +13,7 @@
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
-            <a class="navbar-brand" href="{{ route('index') }}">Интернет Магазин</a>
+            <a class="navbar-brand" href="{{ route('index') }}">{{ __('main.title_online_shop') }}</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
@@ -22,6 +22,7 @@
                 </li>
                 <li @if(\Illuminate\Support\Facades\Route::currentRouteNamed('basket'))  class="active" @endif><a href="{{ route('basket') }}">В корзину</a></li>
                 {{--                <li><a href="{{ route('index') }}">Сбросить проект в начальное состояние</a></li>--}}
+                <li><a href="{{ route('locale', __('main.set_language')) }}">{{ __('main.set_language') }}</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 @guest
