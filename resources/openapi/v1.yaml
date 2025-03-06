@@ -1,0 +1,324 @@
+openapi: 3.0.1
+info:
+  title: API SHOP v1
+  description: ''
+  version: 1.0.0
+servers:
+  - url: https://server-oauth-cut-code.my/api
+  - description: server
+    url: https://server-oauth-cut-code.my/api
+
+paths:
+  /auth:
+    post:
+      tags:
+        - Authenticate
+      operationId: authenticate
+      summary: 'Login User'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: example@maiil.com
+                password:
+                  type: string
+                  format: password
+                  example: '******'
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: ey67263784623jkherewiurgwery324...
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        422:
+          $ref: '#/components/responses/ValidationExceptions'
+
+    delete:
+      tags:
+        - Authenticate
+      operationId: logout
+      security:
+        - jwt: []
+      summary: 'Logout User'
+      responses:
+        204:
+          description: 'No content'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+  /register:
+    post:
+      tags:
+        - Register
+      operationId: register
+      summary: 'Register User'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Igor Kolesnik
+                email:
+                  type: string
+                  example: example@maiil.com
+                password:
+                  type: string
+                  format: password
+                  example: '******'
+                password_confirm:
+                  format: password
+                  example: '******'
+                  required:
+                    - name
+                    - email
+                    - password
+                    - password_confirm
+      responses:
+       201:
+         $ref: '#/components/responses/Success'
+       422:
+         $ref: '#/components/responses/ValidationExceptions'
+
+  /catalog:
+    get:
+      tags:
+        - Catalog
+      summary: 'Products'
+      parameters:
+        - name: 'filter[brands][]'
+          in: query
+          required: false
+          style: deepObject
+          example: true
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: 'filter[price][from]'
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: 'filter[price][to]'
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: 'sort'
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - title
+              - '-title'
+              - price
+              - '-price'
+        - name: 'page'
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+      responses:
+        200:
+          description: 'Successful'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsCollection'
+
+  /cart:
+    get:
+      tags:
+        - Cart
+      summary: 'Cart items'
+      operationId: 'cartIndex'
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: 'Successful'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: {
+                        $ref: '#/components/schemas/CartProduct'
+                    }
+    delete:
+      tags:
+        - Cart
+      summary: 'Truncate'
+      operationId: 'truncate'
+      security:
+        - jwt: []
+      responses:
+        204:
+          description: 'No Content'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+  /cart/{id}:
+    put:
+      tags:
+        - Cart
+      operationId: 'quantity'
+      summary: 'Update quantity'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            oneOf:
+              - type: integer
+              - type: string
+        - name: quantity
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'No Content'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        422:
+          $ref: '#/components/responses/ValidationExceptions'
+    delete:
+      tags:
+        - Cart
+      operationId: 'cartDelete'
+      summary: 'Delete cart item'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            oneOf:
+              - type: integer
+              - type: string
+      responses:
+        204:
+          description: 'No Content'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        422:
+          $ref: '#/components/responses/ValidationExceptions'
+
+
+components:
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+
+    CartProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: integer
+
+    ProductsCollection:
+      type: object
+      properties:
+        currentPage:
+          type: string
+          default: 1
+        first_page_url:
+          type: string
+        from:
+          type: integer
+          default: 1
+        next_page_url:
+          type: string
+          nullable: true
+        prev_page_url:
+          type: string
+          nullable: true
+        to:
+          type: integer
+        path:
+          type: string
+        per_page:
+          type: string
+        data:
+          type: array
+          items: {
+            $ref: '#/components/schemas/Product'
+          }
+
+  responses:
+   ValidationExceptions:
+    description: 'Validation errors'
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+
+   Success:
+     description: 'Successful'
+     content:
+       application/json:
+         schema:
+           type: object
+           properties:
+             message:
+               type: string
+
+   Unauthorized:
+     description: 'Unauthorized errors'
+     content:
+       application/json:
+         schema:
+           type: object
+           properties:
+             message:
+               type: string
+
+
+
+
