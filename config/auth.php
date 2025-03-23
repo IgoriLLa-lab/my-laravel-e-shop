@@ -13,6 +13,8 @@ return [
     |
     */
 
+    'jwt_secret' => env('JWT_SECRET'),
+
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
