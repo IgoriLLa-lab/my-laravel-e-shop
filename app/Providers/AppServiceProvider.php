@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
-use App\Components\BasketLogic;
+use App\Guards\JWTGuard;
 use App\Models\Product;
 use App\Observers\ProductObserver;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
+use Src\Auth\JWT;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
             'check-status' => 'Check order status',
         ]);
 
-        //TODO разобраться с дерективой
+        //TODO разобраться с директивой
         Blade::directive('routeActive', function ($route) {
             return "<?php echo
                 Route::currentRouteNamed($route) ? 'class=\"active\"' : ''
@@ -39,6 +42,16 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Product::observe(ProductObserver::class);
+
+        $this->app->instance(JWT::class, new JWT(
+            config('auth.jwt_secret'),
+        ));
+        Auth::extend('jwt', function (Application $app, string $name, array $config) {
+            return new JwtGuard(
+                $app[JWT::class],
+                Auth::createUserProvider($config['provider']),
+            );
+        });
 
     }
 }
