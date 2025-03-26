@@ -1,5 +1,8 @@
 <?php
 
+namespace src\Auth;
+
+use Carbon\CarbonImmutable;
 use Exceptions\JWTExpiredException;
 use Exceptions\JWTValidatorException;
 use Lcobucci\JWT\Configuration;
@@ -10,6 +13,7 @@ use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Builder;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use Src\Auth\Exceptions\JWTParserException;
 
 final readonly class JWT
 {
@@ -29,16 +33,22 @@ final readonly class JWT
 
         return $builder
             ->issuedAt(now()->toImmutable())
-            ->expiresAt(now()->toImmutable()->addHour())
+            ->expiresAt($this->getExpiresAt())
             ->relatedTo($id)
             ->getToken(new Sha256(), InMemory::base64Encoded($this->secret))
             ->toString();
 
     }
 
+    public function getExpiresAt(): CarbonImmutable
+    {
+        return now()->toImmutable()->addHour();
+    }
+
     /**
      * @throws JWTValidatorException
      * @throws JWTExpiredException
+     * @throws JWTParserException
      */
     public function parseToken(string $token): string
     {
@@ -46,7 +56,12 @@ final readonly class JWT
             $this->encoder,
         );
 
-        $parsedToken = $parser->parse($token);
+        try {
+            $parsedToken = $parser->parse($token);
+        } catch (\Throwable $e) {
+            throw new JWTParserException($e->getMessage(), $e->getCode(), $e);
+        }
+
         $key = InMemory::base64Encoded($this->secret);
 
         $configuration = Configuration::forSymmetricSigner(

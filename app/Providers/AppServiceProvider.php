@@ -9,8 +9,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use JWT;
 use Laravel\Passport\Passport;
+use Src\Auth\JWT;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -50,7 +50,6 @@ class AppServiceProvider extends ServiceProvider
             return new JwtGuard(
                 $app[JWT::class],
                 Auth::createUserProvider($config['provider']),
-                $app['request'],
             );
         });
 

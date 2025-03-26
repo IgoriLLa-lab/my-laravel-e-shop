@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'jwt_secret' => env('JWT_SECRET'),
+    'jwt_secret' => env('JWT_SECRET', 'I02GtT0HAFdknn0aTZVMvTNsNqGwS7gpYDQDfo8LhnE='),
 
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),
@@ -45,6 +45,11 @@ return [
 
         'api' => [
             'driver' => 'passport',
+            'provider' => 'users',
+        ],
+
+        'jwt' => [
+            'driver' => 'jwt',
             'provider' => 'users',
         ],
     ],
