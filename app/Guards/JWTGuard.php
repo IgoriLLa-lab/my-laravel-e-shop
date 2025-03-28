@@ -2,14 +2,13 @@
 
 namespace App\Guards;
 
-use Exceptions\JWTExpiredException;
-use Exceptions\JWTValidatorException;
+use App\Api\V1\Auth\Exceptions\JWTExpiredException;
+use App\Api\V1\Auth\Exceptions\JWTValidatorException;
+use App\Api\V1\Auth\JWT;
 use Illuminate\Auth\GuardHelpers;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
-use Illuminate\Http\Request;
-use src\Auth\JWT;
 
 class JWTGuard implements Guard
 {

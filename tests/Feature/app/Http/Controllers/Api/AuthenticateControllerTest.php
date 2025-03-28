@@ -2,9 +2,12 @@
 
 namespace Tests\Feature\app\Http\Controllers\Api;
 
+use App\Api\V1\Responses\TokenResponse;
+use App\Enum\Api\ApiErrorCode;
 use Database\Factories\UserFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 class AuthenticateControllerTest extends TestCase
@@ -20,7 +23,7 @@ class AuthenticateControllerTest extends TestCase
 
         return $this->postJson(route('api.authenticate'), [
             'email' => $user->email,
-            'password' => $invalid ? 'password' : 'password111',
+            'password' => $invalid ? 'password111' : 'password',
         ]);
     }
 
@@ -30,7 +33,7 @@ class AuthenticateControllerTest extends TestCase
         $response = $this->tokenRequest();
 
         $response
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonStructure([
                 'data' => [
                     'type',
@@ -45,13 +48,28 @@ class AuthenticateControllerTest extends TestCase
         $token = $response->json('data.id');
 
         $this->assertStringContainsString('.', $token);
+
+        $response->assertJson(
+            app(TokenResponse::class)->toSuccess(
+                $token,
+                ['token' => $token],
+                Response::HTTP_CREATED
+            )->toArray()
+        );
     }
 
     public function test_failed_authenticate(): void
     {
         $response = $this->tokenRequest(true);
 
-        $response->assertUnauthorized();
+        $response
+            ->assertUnprocessable()
+            ->assertJson(
+                app(TokenResponse::class)
+                    ->toFailure(ApiErrorCode::CREDENTIALS_INVALID,
+                        Response::HTTP_UNPROCESSABLE_ENTITY)
+                    ->toArray()
+            );
     }
 
     public function test_expired_token(): void
@@ -70,7 +88,13 @@ class AuthenticateControllerTest extends TestCase
         $this
             ->withToken($token)
             ->deleteJson(route('api.logout'))
-            ->assertUnauthorized();
+            ->assertUnauthorized()
+            ->assertJson(
+                app(TokenResponse::class)->toFailure(
+                    ApiErrorCode::TOKEN_EXPIRED,
+                    Response::HTTP_UNAUTHORIZED
+                )->toArray()
+            );
     }
 
     public function test_token_is_invalid(): void
@@ -81,7 +105,13 @@ class AuthenticateControllerTest extends TestCase
             ->assertUnauthorized()
             ->assertJsonStructure([
                 'errors'
-            ]);
+            ])
+            ->assertJson(
+                app(TokenResponse::class)->toFailure(
+                    ApiErrorCode::TOKEN_INVALID,
+                    Response::HTTP_UNAUTHORIZED
+                )->toArray()
+            );
     }
 
 
@@ -112,5 +142,25 @@ class AuthenticateControllerTest extends TestCase
             ->withToken($token)
             ->deleteJson(route('api.logout'))
             ->assertUnauthorized();
+    }
+
+    public function test_token_refresh_successful(): void
+    {
+        $response = $this->tokenRequest();
+
+        $refreshToken = $response->json('data.attributes.refresh_token');
+
+        $this->travelTo(now()->toImmutable()->addHours(2));
+
+        $response = $this->putJson(route('api.refresh_token'), [
+            'refresh_token' => $refreshToken,
+        ]);
+
+        $token = $response->json('data.id');
+        $refreshToken = $response->json('data.attributes.refresh_token');
+
+        $response->assertJson(
+            app(TokenResponse::class)->withTokens($token, $refreshToken)->toArray()
+        );
     }
 }

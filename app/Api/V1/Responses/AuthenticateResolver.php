@@ -2,11 +2,10 @@
 
 namespace App\Api\V1\Responses;
 
+use App\Api\V1\Auth\JWT;
 use App\Api\V1\Contracts\ResponseResolverContract;
 use App\DTO\AuthenticateDTO;
-use App\Http\Requests\Api\AuthenticateFormRequest;
 use Illuminate\Contracts\Auth\Factory;
-use src\Auth\JWT;
 
 class AuthenticateResolver implements ResponseResolverContract
 {
