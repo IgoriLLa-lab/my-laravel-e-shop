@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AuthenticateResponder extends AbstractApiResponder
 {
-    private function __construct(
+    public function __construct(
         private readonly ResponseFactory $response,
     )
     {
@@ -35,17 +35,17 @@ class AuthenticateResponder extends AbstractApiResponder
         $token = $resolver->resolve();
 
         if ($token === null) {
-            return $this->response->json([
+            return $this->response->json(
                 $this->errorResponse('user_credentials', 'Credentials is not valid'), //сделать enum с кодами
                 Response::HTTP_UNAUTHORIZED
-            ]);
+            );
         }
 
-        return $this->response->json([
+        return $this->response->json(
             $this->successResponse($token, [
                 'token' => $token,
             ])
-        ]);
+        );
     }
 
     public function errors(): JsonResponse

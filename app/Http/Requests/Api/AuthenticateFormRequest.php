@@ -27,5 +27,4 @@ class AuthenticateFormRequest extends FormRequest
             $this->input('password')
         );
     }
-
 }

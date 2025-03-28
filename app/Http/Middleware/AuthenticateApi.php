@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use Exceptions\JWTExpiredException;
-use Exceptions\JWTValidatorException;
+use App\Api\V1\Auth\Exceptions\JWTExpiredException;
+use App\Api\V1\Auth\Exceptions\JWTValidatorException;
 use Illuminate\Auth\Middleware\Authenticate;
 use JWT;
 use Mockery\Exception;

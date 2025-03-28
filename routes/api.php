@@ -14,9 +14,9 @@ Route::get('/users', function (Request $request) {
     return $user;
 })->middleware('auth:api');
 
-
 Route::post('authenticate', [AuthenticateController::class, 'authenticate'])->name('api.authenticate');
-Route::post('logout', [AuthenticateController::class, 'logout'])->name('api.logout')->middleware('auth:jwt');
+Route::delete('authenticate', [AuthenticateController::class, 'logout'])->name('api.logout')->middleware('auth:jwt');
+Route::put('authenticate', [AuthenticateController::class, 'refresh'])->name('api.refresh');
 
 //Route::get('/login', function () {
 //    return 'login api routes';

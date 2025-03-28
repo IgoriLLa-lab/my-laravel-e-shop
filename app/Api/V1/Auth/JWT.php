@@ -1,10 +1,11 @@
 <?php
 
-namespace src\Auth;
+namespace App\Api\V1\Auth;
 
+use App\Api\V1\Auth\Exceptions\JWTExpiredException;
+use App\Api\V1\Auth\Exceptions\JWTParserException;
+use App\Api\V1\Auth\Exceptions\JWTValidatorException;
 use Carbon\CarbonImmutable;
-use Exceptions\JWTExpiredException;
-use Exceptions\JWTValidatorException;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Encoder;
 use Lcobucci\JWT\Encoding\ChainedFormatter;
@@ -13,7 +14,6 @@ use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Builder;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
-use Src\Auth\Exceptions\JWTParserException;
 
 final readonly class JWT
 {
@@ -24,7 +24,7 @@ final readonly class JWT
     {
     }
 
-    public function createToken(string $id): string
+    public function createToken(string $id, bool $refresh = false): string
     {
         $builder = new Builder(
             $this->encoder,
@@ -33,7 +33,7 @@ final readonly class JWT
 
         return $builder
             ->issuedAt(now()->toImmutable())
-            ->expiresAt($this->getExpiresAt())
+            ->expiresAt($refresh ? now()->toImmutable()->addDay() : $this->getExpiresAt())
             ->relatedTo($id)
             ->getToken(new Sha256(), InMemory::base64Encoded($this->secret))
             ->toString();

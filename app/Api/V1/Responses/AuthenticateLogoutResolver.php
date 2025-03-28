@@ -3,7 +3,6 @@
 namespace App\Api\V1\Responses;
 
 use Illuminate\Contracts\Auth\Factory;
-use src\Auth\JWT;
 
 class AuthenticateLogoutResolver
 {

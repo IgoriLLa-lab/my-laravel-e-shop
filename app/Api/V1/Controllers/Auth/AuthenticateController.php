@@ -2,39 +2,56 @@
 
 namespace App\Api\V1\Controllers\Auth;
 
-use App\Api\V1\Responses\AuthenticateLogoutResolver;
-use App\Api\V1\Responses\AuthenticateLogoutResponder;
-use App\Api\V1\Responses\AuthenticateResolver;
-use App\Api\V1\Responses\AuthenticateResponder;
+use App\Api\V1\Actions\RefreshTokenAction;
+use App\Api\V1\Actions\TokenCreateAction;
+use App\Api\V1\Auth\Exceptions\JWTExpiredException;
+use App\Api\V1\Auth\Exceptions\JWTParserException;
+use App\Api\V1\Auth\Exceptions\JWTValidatorException;
+use App\Api\V1\Responses\TokenResponse;
+use App\Enum\Api\ApiErrorCode;
 use App\Http\Requests\Api\AuthenticateFormRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\Api\RefreshTokenFormRequest;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthenticateController
 {
-    public function authenticate(AuthenticateFormRequest $request, AuthenticateResolver $resolver, AuthenticateResponder $responder): \Illuminate\Http\JsonResponse
+    public function authenticate(AuthenticateFormRequest $request, TokenCreateAction $action, TokenResponse $response): TokenResponse
     {
+        [$token, $refresh] = $action->handle($request->toDto());
 
-        try {
-            return $responder->respond(
-                $resolver->with($request->toDto())
-            );
-        }catch (\Throwable $e){
-            return $responder->errors($e);
+        if ($token === null) {
+            return $response->toFailure(ApiErrorCode::CREDENTIALS_INVALID, Response::HTTP_UNAUTHORIZED); //либо Response::HTTP_UNPROCESSABLE_ENTITY
         }
 
+        return $response->withTokens($token, $refresh);
     }
 
-    public function logout(AuthenticateLogoutResolver $resolver, AuthenticateLogoutResponder $responder, Request $request): \Illuminate\Http\JsonResponse
+    public function logout(): \Illuminate\Http\Response
     {
-        try {
-            return $responder->respond(
-                $resolver->with(
-                    $request->bearerToken()
-                )
+        auth()->logout();
+
+        return response()->noContent();
+    }
+
+    /**
+     * @throws JWTValidatorException
+     * @throws JWTParserException
+     * @throws JWTExpiredException
+     */
+    public function refresh(RefreshTokenFormRequest $request, TokenResponse $response, RefreshTokenAction $action): TokenResponse
+    {
+        [$token, $refresh] = $action->handle(
+            $request->input('refresh_token')
+        );
+
+        if ($token === null) {
+            return $response->toFailure(
+                ApiErrorCode::TOKEN_REFRESH_FAILED,
+                Response::HTTP_UNPROCESSABLE_ENTITY
             );
-        }catch (\Throwable $e){
-            return $responder->errors($e);
         }
+
+        return $response->withTokens($token, $refresh);
     }
 
 }
