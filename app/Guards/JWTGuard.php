@@ -3,6 +3,7 @@
 namespace App\Guards;
 
 use App\Api\V1\Auth\Exceptions\JWTExpiredException;
+use App\Api\V1\Auth\Exceptions\JWTParserException;
 use App\Api\V1\Auth\Exceptions\JWTValidatorException;
 use App\Api\V1\Auth\JWT;
 use Illuminate\Auth\GuardHelpers;
@@ -26,9 +27,9 @@ class JWTGuard implements Guard
 
     /**
      * @throws JWTExpiredException
-     * @throws JWTValidatorException
+     * @throws JWTValidatorException|JWTParserException
      */
-    public function user()
+    public function user(): ?Authenticatable
     {
         $token = \request()?->bearerToken();
 

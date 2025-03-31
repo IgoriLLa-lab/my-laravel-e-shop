@@ -9,24 +9,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
+use Tests\Traits\TestRequests;
 
 class AuthenticateControllerTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function tokenRequest(bool $invalid = false): TestResponse
-    {
-        $user = UserFactory::new([
-            'email' => 'test@test.com',
-            'password' => bcrypt('password'),
-        ])->create();
-
-        return $this->postJson(route('api.authenticate'), [
-            'email' => $user->email,
-            'password' => $invalid ? 'password111' : 'password',
-        ]);
-    }
-
+    use TestRequests;
 
     public function test_successfully_authenticate(): void
     {

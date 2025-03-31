@@ -6,6 +6,7 @@ use App\Enum\Api\ApiErrorCode;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Database\Eloquent\Collection;
 use phpseclib3\Math\PrimeField\Integer;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,15 +27,26 @@ abstract class ApiResponse implements Responsable, Arrayable
 
     abstract public function links(): array;
 
-    public function toSuccess(string $id, array $attributes, int $status = Response::HTTP_OK): static
+    public function toSuccess(ApiData $data, int $status = Response::HTTP_OK): static
     {
         $this->status = $status;
         $this->data = array_filter([
-            'data' => [
-                'type' => $this->type(),
-                'id' => $id,
-                'attributes' => $attributes,
-            ],
+            'data' => $data->toArray(),
+            'links' => $this->links() === [] ? null : $this->links()
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * @param Collection<array-key, ApiData> $items
+     * @return $this
+     */
+    public function toCollection(Collection $items, int $status = Response::HTTP_OK): static
+    {
+        $this->status = $status;
+        $this->data = array_filter([
+            'data' => $items->toArray(),
             'links' => $this->links() === [] ? null : $this->links()
         ]);
 
