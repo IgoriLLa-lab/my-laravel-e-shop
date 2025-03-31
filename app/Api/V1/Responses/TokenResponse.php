@@ -23,8 +23,11 @@ class TokenResponse extends ApiResponse
     public function withTokens(string $token, string $refreshToken): self
     {
         return $this->toSuccess(
-            $token,
-            ['token' => $token, 'refresh_token' => $refreshToken],
+            new ApiData(
+                $this->type(),
+                $token,
+                ['token' => $token, 'refresh_token' => $refreshToken]
+            ),
             Response::HTTP_CREATED
         );
     }
