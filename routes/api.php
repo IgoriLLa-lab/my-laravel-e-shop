@@ -2,6 +2,7 @@
 
 use App\Api\V1\Controllers\Auth\AuthenticateController;
 use App\Api\V1\Controllers\Cart\CartController;
+use App\Api\V1\Controllers\Catalog\CatalogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,8 @@ Route::controller(CartController::class)->as('api.cart.')->middleware('auth:jwt'
 //    Route::put('cart{id}', 'quantity')->name('quantity');
 //    Route::delete('cart{id}','delete')->name('delete');
 });
+
+Route::get('/catalog', [CatalogController::class, 'index'])->middleware('auth:jwt')->name('catalog.index');
 
 
 //Route::get('/login', function () {
